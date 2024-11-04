@@ -1,0 +1,45 @@
+<div>
+  <app-navbar></app-navbar>
+  <div class="container mt-3">
+    <div
+      class="d-flex.justify-content.between.flex-md-nowarp.align-items-center.pt-2.pb-2.mb-3.border-bottom"
+    >
+      <h1>Employee list</h1>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">EmpNum</th>
+            <th scope="col">EmpName</th>
+            <th scope="col">HireDate</th>
+            <th scope="col">Salary</th>
+            <th scope="col">Position</th>
+            <th scope="col">DepNo</th>
+            <th scope="col">HeadNo</th>
+            <th class="text-center" scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of this.empList; let i = index">
+            <th scope="row">{{ item.id }}</th>
+            <td>{{ item.EmpNum }}</td>
+            <td>{{ item.EmpName }}</td>
+            <td>{{ item.HireDate | date : "dd/MM/yyyy" }}</td>
+            <td style="display: flex; justify-content: flex-end">
+              {{ item.Salary | number }}
+            </td>
+            <td>{{ item.Position }}</td>
+            <td>{{ item.DepNo }}</td>
+            <td>{{ item.HeadNo }}</td>
+            <td class="text-center">
+              <!-- <button class="btn btn-sm btn-primary" routerLink="/edit-book/{{book._id}}">Edit</button>
+                        <button class="btn btn-sm btn-danger" (click)="delete(book._id,i)">Delete</button> -->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
