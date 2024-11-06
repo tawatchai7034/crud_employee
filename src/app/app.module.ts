@@ -8,6 +8,7 @@ import { EmpViewComponent } from './components/employee/emp-view/emp-view.compon
 import { EmpAddComponent } from './components/employee/emp-add/emp-add.component';
 import { EmpEditComponent } from './components/employee/emp-edit/emp-edit.component';
 import { HttpClientModule } from '@angular/common/http';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,13 @@ import { HttpClientModule } from '@angular/common/http';
     EmpAddComponent,
     EmpEditComponent,
   ],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HttpClientModule,
+    ReactiveFormsModule,
+    FormsModule,
+  ],
   providers: [],
   bootstrap: [AppComponent],
 })

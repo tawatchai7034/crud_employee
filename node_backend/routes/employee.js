@@ -1,13 +1,14 @@
+require("dotenv").config();
 let express = require("express");
 var mysql = require("mysql");
 let employeeRouter = express.Router();
 
 var con = mysql.createConnection({
-  host: "127.0.0.1",
-  user: "root",
-  password: "root",
-  database: "localdb",
-  port: 3306,
+  host: process.env.HOST,
+  user: process.env.USER,
+  password: process.env.PASSWORD,
+  database: process.env.DBNAME,
+  port: process.env.PORT,
 });
 
 con.connect(function (err) {
