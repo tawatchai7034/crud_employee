@@ -1,8 +1,9 @@
 require("dotenv").config();
 let express = require("express");
 var mysql = require("mysql");
-const verifyToken = require('../middleware/authMiddleware');
 let employeeRouter = express.Router();
+const jwtValidate = require("../middleware/authValidate");
+const parseJwt = require("../middleware/authDecode");
 
 var con = mysql.createConnection({
   host: process.env.HOST,
@@ -21,8 +22,12 @@ con.connect(function (err) {
   // });
 });
 
-employeeRouter.get("/getAll", async (req, res) => {
+employeeRouter.get("/getAll", jwtValidate, async (req, res) => {
   try {
+    // token decoder
+    // const token = req.headers["authorization"].replace("Bearer ", "");
+    // console.log(parseJwt(token));
+
     await con.query(
       "SELECT * FROM tb_employee",
       function (err, result, fields) {
@@ -53,39 +58,7 @@ employeeRouter.get("/getAll", async (req, res) => {
   }
 });
 
-employeeRouter.get("/authGet",verifyToken, async (req, res) => {
-  try {
-    await con.query(
-      "SELECT * FROM tb_employee",
-      function (err, result, fields) {
-        if (err) {
-          let reponse = {
-            code: 400,
-            message: "error",
-            result: err,
-          };
-          res.json(reponse);
-        } else {
-          let reponse = {
-            code: 200,
-            message: "success",
-            result: result,
-          };
-          res.json(reponse);
-        }
-      }
-    );
-    // console.log(result.rows);
-  } catch (err) {
-    const result = {
-      success: false,
-      message: err,
-    };
-    res.json(result);
-  }
-});
-
-employeeRouter.post("/create", async (req, res) => {
+employeeRouter.post("/create", jwtValidate, async (req, res) => {
   try {
     var EmpNum = req.body.EmpNum;
     var EmpName = req.body.EmpName;

@@ -1,13 +1,20 @@
 require("dotenv").config();
 let express = require("express");
 let authRouter = express.Router();
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+
+const users = [
+  { id: 1, name: "John", refresh: null },
+  { id: 2, name: "Tom", refresh: null },
+  { id: 3, name: "Chris", refresh: null },
+  { id: 4, name: "David", refresh: null },
+];
 
 const jwtGenerate = (user) => {
   const accessToken = jwt.sign(
     { name: user.name, id: user.id },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "3m", algorithm: "HS256" }
+    { expiresIn: "1h", algorithm: "HS256" }
   );
 
   return accessToken;
@@ -23,89 +30,99 @@ const jwtRefreshTokenGenerate = (user) => {
   return refreshToken;
 };
 
-const jwtValidate = (req, res, next) => {
-  try {
-    if (!req.headers["authorization"]) return res.sendStatus(401)
-
-    const token = req.headers["authorization"].replace("Bearer ", "")
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-      if (err) throw new Error(error)
-    })
-    next()
-  } catch (error) {
-    return res.sendStatus(403)
-  }
-}
-
 const jwtRefreshTokenValidate = (req, res, next) => {
-    try {
-      if (!req.headers["authorization"]) return res.sendStatus(401)
-      const token = req.headers["authorization"].replace("Bearer ", "")
-  
-      jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-        if (err) throw new Error(error)
-  
-        req.user = decoded
-        req.user.token = token
-        delete req.user.exp
-        delete req.user.iat
-      })
-      next()
-    } catch (error) {
-      return res.sendStatus(403)
+  try {
+    if (!req.headers["authorization"]) {
+      const result = {
+        success: false,
+        message: "Authorization key",
+      };
+      res.json(result);
     }
-  }
-  
+    const token = req.headers["authorization"].replace("Bearer ", "");
 
-authRouter.get("/", jwtValidate, (req, res) => {
-  res.send("Hello World!");
-});
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        const result = {
+          success: false,
+          message: err,
+        };
+        res.json(result);
+      }
+
+      req.user = decoded;
+      req.user.token = token;
+      delete req.user.exp;
+      delete req.user.iat;
+    });
+    next();
+  } catch (error) {
+    return res.sendStatus(403);
+  }
+};
 
 authRouter.post("/login", (req, res) => {
-  const { name } = req.body;
-  const users = [
-    { id: 1, name: "John", refresh: null },
-    { id: 2, name: "Tom", refresh: null },
-    { id: 3, name: "Chris", refresh: null },
-    { id: 4, name: "David", refresh: null },
-  ];
+  try {
+    const { name } = req.body;
 
-  //find user
-  const user = users.findIndex((e) => e.name === name);
+    //find user
+    const user = users.findIndex((e) => e.name === name);
 
-  if (!name || user < 0) {
-    return res.send(400);
-  }
+    if (!name || user < 0) {
+      return res.send(400);
+    }
 
-  const access_token = jwtGenerate(users[user]);
-  const refresh_token = jwtRefreshTokenGenerate(users[user]);
+    const access_token = jwtGenerate(users[user]);
+    const refresh_token = jwtRefreshTokenGenerate(users[user]);
 
-  users[user].refresh = refresh_token;
+    users[user].refresh = refresh_token;
 
-  res.json({
-    access_token,
-    refresh_token,
-  });
-});
-
-authRouter.post("/auth/refresh", jwtRefreshTokenValidate, (req, res) => {
-    const user = users.find(
-      (e) => e.id === req.user.id && e.name === req.user.name
-    )
-  
-    const userIndex = users.findIndex((e) => e.refresh === req.user.token)
-  
-    if (!user || userIndex < 0) return res.sendStatus(401)
-  
-    const access_token = jwtGenerate(user)
-    const refresh_token = jwtRefreshTokenGenerate(user)
-    users[userIndex].refresh = refresh_token
-  
-    return res.json({
+    res.json({
       access_token,
       refresh_token,
-    })
-  })
+    });
+  } catch (err) {
+    const result = {
+      success: false,
+      message: err,
+    };
+    res.json(result);
+  }
+});
+
+authRouter.get("/validate", (req, res) => {
+  try {
+    if (!req.headers["authorization"]) {
+      const result = {
+        success: false,
+        message: "Authorization key",
+      };
+      res.json(result);
+    }
+
+    const token = req.headers["authorization"].replace("Bearer ", "");
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+      if (err) {
+        const result = {
+          success: false,
+          message: err,
+        };
+        res.json(result);
+      } else {
+        const result = {
+          success: true,
+          message: "Success",
+        };
+        res.json(result);
+      }
+    });
+  } catch (err) {
+    const result = {
+      success: false,
+      message: err,
+    };
+    res.json(result);
+  }
+});
 
 module.exports = authRouter;
