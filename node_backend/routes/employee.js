@@ -1,6 +1,7 @@
 require("dotenv").config();
 let express = require("express");
 var mysql = require("mysql");
+const verifyToken = require('../middleware/authMiddleware');
 let employeeRouter = express.Router();
 
 var con = mysql.createConnection({
@@ -21,6 +22,38 @@ con.connect(function (err) {
 });
 
 employeeRouter.get("/getAll", async (req, res) => {
+  try {
+    await con.query(
+      "SELECT * FROM tb_employee",
+      function (err, result, fields) {
+        if (err) {
+          let reponse = {
+            code: 400,
+            message: "error",
+            result: err,
+          };
+          res.json(reponse);
+        } else {
+          let reponse = {
+            code: 200,
+            message: "success",
+            result: result,
+          };
+          res.json(reponse);
+        }
+      }
+    );
+    // console.log(result.rows);
+  } catch (err) {
+    const result = {
+      success: false,
+      message: err,
+    };
+    res.json(result);
+  }
+});
+
+employeeRouter.get("/authGet",verifyToken, async (req, res) => {
   try {
     await con.query(
       "SELECT * FROM tb_employee",
